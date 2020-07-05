@@ -10,17 +10,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
-using System.Net.NetworkInformation;
-using System.Net.WebSockets;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
-using System.Runtime.Remoting.Contexts;
-using System.Runtime.Remoting;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using Discord.Commands;
 
 namespace UnityStation_Discord_Bot
 {
@@ -88,7 +81,7 @@ namespace UnityStation_Discord_Bot
                 case "!ping":
                     if (!await CheckAdmin(message))
                         return;
-                    await message.Channel.SendMessageAsync($"Pong! Roundtrip time was " + Program._client.Latency + "ms");
+                    await message.Channel.SendMessageAsync($"Pong! Roundtrip time was " + client.Latency + "ms");
                     break;
                 case "!serverlist":
                     if (!await CheckAdmin(message))
