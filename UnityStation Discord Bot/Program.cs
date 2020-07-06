@@ -62,7 +62,7 @@ namespace UnityStation_Discord_Bot
             }
             else
             {
-                await message.Channel.SendMessageAsync($"Insufficient privileges");
+                await message.Channel.SendMessageAsync($"Insufficient privileges: Bot admin required");
                 return false;
             }
         }
@@ -81,7 +81,7 @@ namespace UnityStation_Discord_Bot
                 case "!ping":
                     if (!await CheckAdmin(message))
                         return;
-                    await message.Channel.SendMessageAsync("Pong!");
+                    await message.Channel.SendMessageAsync($"Pong! Roundtrip time was " + client.Latency + "ms");
                     break;
                 case "!serverlist":
                     if (!await CheckAdmin(message))
@@ -143,7 +143,7 @@ namespace UnityStation_Discord_Bot
             List<string> commandParams = message.Content.Split(" ").ToList();
             if (commandParams.Count != 2)
             {
-                await message.Channel.SendMessageAsync($"Usage: !hardreset servername (ex.: USA01 or GER01)");
+                await message.Channel.SendMessageAsync($"Usage: !hardreset servername (ex.: SD)");
             }
             else
             {
@@ -154,26 +154,27 @@ namespace UnityStation_Discord_Bot
                 }
                 else
                 {
-                    await message.Channel.SendMessageAsync($"{message.Author.Username} asked for an hardreset for server {commandParams[1]}");
+                    await message.Channel.SendMessageAsync($"{message.Author.Username} began a hardreset of {commandParams[1]}.");
 
                     using (SshClient sshClient = new SshClient(serverConnection.Ip, serverConnection.Login, serverConnection.Password))
                     {
                         sshClient.Connect();
-                        await message.Channel.SendMessageAsync($"Connection successful");
+                        await message.Channel.SendMessageAsync($"Connection to server successful.");
                         sshClient.CreateCommand("bash restart.sh").Execute();
-                        await message.Channel.SendMessageAsync($"Restart command sent");
+                        await message.Channel.SendMessageAsync($"Server restart command sent and received.");
                         sshClient.Disconnect();
                     }
                 }
             }
         }
 
+
         private async Task Update(SocketMessage message)
         {
             List<string> commandParams = message.Content.Split(" ").ToList();
             if (commandParams.Count != 2)
             {
-                await message.Channel.SendMessageAsync($"Usage: !update servername (ex.: USA01 or GER01)");
+                await message.Channel.SendMessageAsync($"Usage: !update servername (ex.: SD)");
             }
             else
             {
@@ -184,14 +185,14 @@ namespace UnityStation_Discord_Bot
                 }
                 else
                 {
-                    await message.Channel.SendMessageAsync($"{message.Author.Username} asked for an update for server {commandParams[1]}");
+                    await message.Channel.SendMessageAsync($"{message.Author.Username} began an update on server {commandParams[1]}.");
 
                     using (SshClient sshClient = new SshClient(serverConnection.Ip, serverConnection.Login, serverConnection.Password))
                     {
                         sshClient.Connect();
-                        await message.Channel.SendMessageAsync($"Connection successful");
+                        await message.Channel.SendMessageAsync($"Connection to server successful.");
                         sshClient.CreateCommand("bash update.sh").Execute();
-                        await message.Channel.SendMessageAsync($"Update command sent");
+                        await message.Channel.SendMessageAsync($"Update command sent and received.");
                         sshClient.Disconnect();
                     }
                 }
@@ -203,7 +204,7 @@ namespace UnityStation_Discord_Bot
             List<string> commandParams = message.Content.Split(" ").ToList();
             if (commandParams.Count != 2)
             {
-                await message.Channel.SendMessageAsync($"Usage: !reboot servername (ex.: USA01 or GER01)");
+                await message.Channel.SendMessageAsync($"Usage: !reboot servername (ex.: SD)");
             }
             else
             {
@@ -214,15 +215,15 @@ namespace UnityStation_Discord_Bot
                 }
                 else
                 {
-                    await message.Channel.SendMessageAsync($"{message.Author.Username} asked for a delete logs + reboot for server {commandParams[1]}");
+                    await message.Channel.SendMessageAsync($"{message.Author.Username} initialized a reboot and log deletion of {commandParams[1]}.");
 
                     using (SshClient sshClient = new SshClient(serverConnection.Ip, serverConnection.Login, serverConnection.Password))
                     {
                         sshClient.Connect();
-                        await message.Channel.SendMessageAsync($"Connection successful");
+                        await message.Channel.SendMessageAsync($"Connection to server successful.");
                         sshClient.CreateCommand("rm server/serverlog.txt").Execute();
-                        await message.Channel.SendMessageAsync($"Logs deleted");
-                        await message.Channel.SendMessageAsync($"Rebooting");
+                        await message.Channel.SendMessageAsync($"Logs deleted.");
+                        await message.Channel.SendMessageAsync($"Rebooting.");
                         try
                         {
                             sshClient.CreateCommand("reboot").Execute();
@@ -307,10 +308,11 @@ namespace UnityStation_Discord_Bot
             using (SshClient sshClient = new SshClient(serverConnection.Ip, serverConnection.Login, serverConnection.Password))
             {
                 sshClient.Connect();
-                await message.Channel.SendMessageAsync($"Connection successful");
-                await message.Channel.SendMessageAsync($"Getting ban details");
-                SshCommand cmd = sshClient.CreateCommand("cat ./server/Unitystation-Server_Data/StreamingAssets/admin/banlist.json");
+                await message.Channel.SendMessageAsync($"Connection to server successful.");
+                await message.Channel.SendMessageAsync($"Getting ban details.");
+                SshCommand cmd = sshClient.CreateCommand("cat ./server/Unitystation_Data/StreamingAssets/admin/banlist.json");
                 string cmdResult = cmd.Execute();
+                await message.Channel.SendMessageAsync($"Ban details retrieved.");
                 sshClient.Disconnect();
 
                 BanList banList = JsonSerializer.Deserialize<BanList>(cmdResult);
@@ -318,13 +320,13 @@ namespace UnityStation_Discord_Bot
 
                 if (bannedUser == null)
                 {
-                    await message.Channel.SendMessageAsync($"That user is not in the ban list");
+                    await message.Channel.SendMessageAsync($"That user is not in the ban list.");
                     return;
                 }
 
                 StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append($"**User name:** {bannedUser.userName}\n");
-                stringBuilder.Append($"**User id:** {bannedUser.userId}\n");
+                stringBuilder.Append($"**Username:** {bannedUser.userName}\n");
+                stringBuilder.Append($"**User ID:** {bannedUser.userId}\n");
                 stringBuilder.Append($"**Date of ban:** {bannedUser.dateTimeOfBan}\n");
                 stringBuilder.Append($"**Minutes:** {bannedUser.minutes}\n");
                 stringBuilder.Append($"**Reason:** {bannedUser.reason}");
@@ -338,10 +340,11 @@ namespace UnityStation_Discord_Bot
             using (SshClient sshClient = new SshClient(serverConnection.Ip, serverConnection.Login, serverConnection.Password))
             {
                 sshClient.Connect();
-                await message.Channel.SendMessageAsync($"Connection successful");
-                await message.Channel.SendMessageAsync($"Getting ban list");
-                SshCommand cmd = sshClient.CreateCommand("cat ./server/Unitystation-Server_Data/StreamingAssets/admin/banlist.json");
+                await message.Channel.SendMessageAsync($"Connection to server successful.");
+                await message.Channel.SendMessageAsync($"Getting ban list.");
+                SshCommand cmd = sshClient.CreateCommand("cat ./server/Unitystation_Data/StreamingAssets/admin/banlist.json");
                 string cmdResult = cmd.Execute();
+                await message.Channel.SendMessageAsync($"Ban details retrieved.");
                 sshClient.Disconnect();
 
                 BanList banList = JsonSerializer.Deserialize<BanList>(cmdResult);
@@ -384,8 +387,8 @@ namespace UnityStation_Discord_Bot
                 using (SshClient sshClient = new SshClient(serverConnection.Ip, serverConnection.Login, serverConnection.Password))
                 {
                     sshClient.Connect();
-                    await message.Channel.SendMessageAsync($"Connection to {serverConnection.ServerName} successful");
-                    await message.Channel.SendMessageAsync($"Adding {commandParams[2]} to deny rule list");
+                    await message.Channel.SendMessageAsync($"Connection to {serverConnection.ServerName} successful.");
+                    await message.Channel.SendMessageAsync($"Adding {commandParams[2]} to deny rule list.");
                     SshCommand cmd = sshClient.CreateCommand($"ufw insert 1 deny from {commandParams[2]} to any");
                     cmd.Execute();
                     sshClient.Disconnect();
@@ -431,13 +434,20 @@ namespace UnityStation_Discord_Bot
 
         private async Task BotAdminList(SocketMessage message)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(">>> BOT Admins are: \n");
+            var builder = new EmbedBuilder();
+            {
+                builder.WithTitle("Bot Admin List");
+                builder.WithColor(Color.Blue);
+            }
+
             foreach (Admin admin in config.Admins)
             {
-                stringBuilder.Append($"{admin.Name}\n");
+                builder.AddField("Admin ID and Name:", $"{admin.Name}", true);
+
             }
-            await message.Channel.SendMessageAsync(stringBuilder.ToString());
+            builder.Build();
+
+            await message.Channel.SendMessageAsync($"{builder.ToString()}");
         }
 
         private async Task BotAdminAdd(SocketMessage message, List<string> commandParams)
@@ -479,17 +489,17 @@ namespace UnityStation_Discord_Bot
                 await message.Channel.SendMessageAsync($"{commandParams[2]} is not a valid ID!");
                 return;
             }
-            
+
             if (!config.Admins.Exists(p => p.Name.StartsWith(id)))
             {
-                await message.Channel.SendMessageAsync($"User {commandParams[2]} is not a bot admin");
+                await message.Channel.SendMessageAsync($"User {commandParams[2]} is not a bot admin.");
                 return;
             }
 
             config.Admins.Remove(config.Admins.Find(p => p.Name.StartsWith(id)));
             SaveConfig();
 
-            await message.Channel.SendMessageAsync($"User {commandParams[2]} was removed from bot admins");
+            await message.Channel.SendMessageAsync($"User {commandParams[2]} was removed from bot admins.");
         }
 
         private async Task GetLog(SocketMessage message)
@@ -497,7 +507,7 @@ namespace UnityStation_Discord_Bot
             List<string> commandParams = message.Content.Split(" ").ToList();
             if (commandParams.Count != 2)
             {
-                await message.Channel.SendMessageAsync($"Usage: !getlog servername (ex.: USA01 or GER01)");
+                await message.Channel.SendMessageAsync($"Usage: !getlog servername (ex.: SD)");
                 return;
             }
             ServerConnection serverConnection = config.ServersConnections.FirstOrDefault(s => s.ServerName == commandParams[1]);
@@ -506,12 +516,12 @@ namespace UnityStation_Discord_Bot
                 await message.Channel.SendMessageAsync($"Unknown server: {commandParams[1]}");
                 return;
             }
-            await message.Channel.SendMessageAsync($"{message.Author.Username} asked for the logs for server {commandParams[1]}");
+            await message.Channel.SendMessageAsync($"{message.Author.Username} asked for the {commandParams[1]} server logs.");
 
             using (ScpClient scp = new ScpClient(serverConnection.Ip, serverConnection.Login, serverConnection.Password))
             {
                 scp.Connect();
-                await message.Channel.SendMessageAsync($"Connection successful");
+                await message.Channel.SendMessageAsync($"Connection to server successful.");
 
                 using var rawStream = new MemoryStream();
 

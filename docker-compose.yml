@@ -3,8 +3,8 @@ version: "3"
 services:
   bot:
     restart: unless-stopped
-    image: unitystation/discord-bot
+    image: solidaritybot3
     labels:
       - io.portainer.accesscontrol.public
     volumes: 
-      - /etc/discord-bot/Config.json:/app/Config.json
+      - ./chatbot/sdbot/Config.json:/app/Config.json
